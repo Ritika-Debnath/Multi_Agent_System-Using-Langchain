@@ -1,134 +1,201 @@
-# Multi-Agent System Using LangChain
+# 🤖 Multi-Agent System Using LangChain
 
-A Multi-Agent Research System built with **Python and LangChain**.
+> A Multi-Agent Research System built with **Python, LangChain, and Generative AI**.
 
-This project uses multiple AI agents and chains to research a given topic, collect detailed information, generate a report, and review the final report.
+This project uses multiple AI agents and chains to **research a given topic, collect relevant information, generate a structured research report, and review the final report**.
+
+---
 
 ## 🚀 Features
 
-- 🔎 **Search Agent** – Finds recent and reliable information about a given topic.
-- 📖 **Reader Agent** – Selects a useful source and scrapes it for detailed content.
-- ✍️ **Writer Chain** – Uses the collected research to generate a structured report.
-- 🧐 **Critic Chain** – Reviews the generated report and provides feedback.
-- 🔗 Uses **LangChain** to connect agents, tools, and LLMs.
+- 🔎 **Search Agent**  
+  Searches for recent and relevant information about a given research topic.
+
+- 📖 **Reader Agent**  
+  Selects a useful source from the search results and extracts detailed information.
+
+- ✍️ **Writer Chain**  
+  Uses the collected research information to generate a structured research report.
+
+- 🧐 **Critic Chain**  
+  Reviews the generated report and provides feedback about its quality.
+
+- 🔗 **LangChain Integration**  
+  Connects agents, tools, prompts, and LLMs into a complete research workflow.
+
+- 🌐 **Web Research**  
+  Uses web search and scraping tools to collect information from online sources.
+
+---
 
 ## 🔄 How It Works
 
+The project follows a sequential **Multi-Agent Research Pipeline**:
 
-User enters a topic
-        ↓
-Search Agent
-        ↓
-Search Results
-        ↓
-Reader Agent
-        ↓
-Scraped Content
-        ↓
-Writer Chain
-        ↓
-Research Report
-        ↓
-Critic Chain
-        ↓
-Feedback
+```text
+User enters a research topic
+            ↓
+       Search Agent
+            ↓
+       Search Results
+            ↓
+       Reader Agent
+            ↓
+   Extracted Web Content
+            ↓
+       Writer Chain
+            ↓
+      Research Report
+            ↓
+       Critic Chain
+            ↓
+        Feedback
+
+📌 Workflow
+The user enters a research topic.
+The Search Agent searches the web for relevant information.
+The Reader Agent selects a useful source and extracts detailed content.
+The Writer Chain combines the collected information and generates a research report.
+The Critic Chain reviews the generated report.
+The system provides feedback on the final report.
+
 📁 Project Structure
 Multi_Agent_System-Using-Langchain/
 │
-├── agents.py          # Creates the agents and LangChain chains
-├── tools.py           # Contains tools used by the agents
-├── pipeline.py        # Runs the complete research pipeline
-├── app.py             # Application entry point
-├── requirements.txt   # Required Python packages
-├── .gitignore         # Files ignored by Git
-└── README.md          # Project documentation
+├── agents.py
+│   └── Creates the AI agents and LangChain chains
+│
+├── tools.py
+│   └── Contains the tools used by the agents
+│
+├── pipeline.py
+│   └── Runs the complete research pipeline
+│
+├── app.py
+│   └── Application entry point
+│
+├── requirements.txt
+│   └── Contains the required Python packages
+│
+├── .gitignore
+│   └── Specifies files ignored by Git
+│
+└── README.md
+    └── Project documentation
+
 🛠️ Technologies Used
 Python
 LangChain
-Large Language Model (LLM)
-Search / Web tools
-Web scraping
+Large Language Models (LLMs)
 Generative AI
-⚙️ Installation
-1. Clone the repository
-git clone https://github.com/Ritika-Debnath/Multi_Agent_System-Using-Langchain.git
-2. Open the project folder
-cd Multi_Agent_System-Using-Langchain
-3. Create a virtual environment
-python -m venv .venv
-4. Activate the virtual environment
+Web Search Tools
+Web Scraping
+Tavily Search API
+Google Gemini API
 
-Windows:
+
+⚙️ Installation
+1. Clone the Repository
+git clone https://github.com/Ritika-Debnath/Multi_Agent_System-Using-Langchain.git
+2. Open the Project Folder
+cd Multi_Agent_System-Using-Langchain
+3. Create a Virtual Environment
+python -m venv .venv
+4. Activate the Virtual Environment
+
+For Windows:
 
 .venv\Scripts\activate
-5. Install the required packages
+5. Install Required Packages
 pip install -r requirements.txt
 🔑 API Keys
 
-Create a .env file in the project folder and add your API keys.
-
-Example:
+Create a .env file in the project folder and add your API keys:
 
 GEMINI_API_KEY=your_gemini_api_key
 TAVILY_API_KEY=your_tavily_api_key
 
-Never upload your .env file or API keys to GitHub.
+⚠️ Important: Never upload your .env file or API keys to GitHub.
+
+Make sure .env is included in your .gitignore file.
 
 ▶️ Run the Project
 
-Run the pipeline:
+Run the main pipeline using:
 
 python pipeline.py
 
-Then enter a research topic when asked.
+The program will ask you to enter a research topic.
 
-Example:
-
+Example
 Enter a research topic: Artificial Intelligence
 
 The system will then:
 
-Search for information.
-Read/scrape a relevant source.
-Generate a research report.
-Review the report and provide feedback.
-🧠 Main Components
-Search Agent
+Search for information
+        ↓
+Read and extract relevant content
+        ↓
+Generate a research report
+        ↓
+Review the report
+        ↓
+Provide feedback
+🧩 Main Components
+🔎 Search Agent
 
-Finds recent and reliable information about the user's topic.
+The Search Agent finds recent and relevant information about the user's research topic using web search tools.
 
-Reader Agent
+📖 Reader Agent
 
-Uses the search results to identify a relevant source and collect deeper information.
+The Reader Agent uses the search results to identify a relevant source and collect more detailed information from it.
 
-Writer Chain
+✍️ Writer Chain
 
-Combines the search results and scraped content to create the research report.
+The Writer Chain combines the collected research and generates a structured research report.
 
-Critic Chain
+🧐 Critic Chain
 
-Reviews the generated report and provides feedback about its quality.
+The Critic Chain reviews the generated report and provides feedback about its quality, clarity, and completeness.
 
 📌 Example
-
-Input:
-
+Input
 Artificial Intelligence
+Process
+Search Agent
+    ↓
+Finds relevant sources
+    ↓
+Reader Agent
+    ↓
+Extracts useful information
+    ↓
+Writer Chain
+    ↓
+Creates research report
+    ↓
+Critic Chain
+    ↓
+Reviews the report
+Output
 
-Output:
+The system generates a structured research report based on the collected information and provides feedback through the Critic Chain.
 
-Search Results
-      ↓
-Scraped Content
-      ↓
-Generated Research Report
-      ↓
-Critic Feedback
+🎯 Project Objective
+
+The main objective of this project is to demonstrate how multiple AI agents can work together to perform an automated research workflow.
+
+Instead of relying on a single AI agent, different agents and chains are given specific responsibilities such as:
+
+Searching for information
+Reading and extracting content
+Writing the report
+Reviewing the final result
+
+This creates a modular and organized Multi-Agent AI workflow using LangChain.
+
 👩‍💻 Author
 
 Ritika Debnath
 
-3rd Year BCA Student | AI & Machine Learning Enthusiast
-
-GitHub:
-https://github.com/Ritika-Debnath
+BCA Student | AI & Machine Learning Enthusiast
