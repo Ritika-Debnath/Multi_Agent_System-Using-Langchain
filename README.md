@@ -50,6 +50,7 @@ User enters a research topic
        Critic Chain
             ↓
         Feedback
+text```
 
 📌 Workflow
 The user enters a research topic.
