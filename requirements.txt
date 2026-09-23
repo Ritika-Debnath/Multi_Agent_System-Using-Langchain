@@ -1,0 +1,26 @@
+# LangChain
+langchain
+langchain-core
+langchain-google-genai
+
+# Gemini
+google-genai
+
+# Tavily web search
+tavily-python
+
+# Web scraping
+beautifulsoup4
+requests
+
+# Environment variables
+python-dotenv
+
+# Terminal output
+rich
+
+# Data validation
+pydantic
+
+# UI creation
+streamlit
