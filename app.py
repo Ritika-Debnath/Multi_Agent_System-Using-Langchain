@@ -77,19 +77,32 @@ html, body, [class*="css"] {
     backdrop-filter: blur(8px);
 }
 
-.stTextInput > div > div > input {
-    background: rgba(255,255,255,0.05) !important;
+.stTextInput input,
+div[data-testid="stTextInput"] input {
+    background: #121118 !important;
     border: 1px solid rgba(255,140,50,0.25) !important;
     border-radius: 10px !important;
-    color: #f0ebe0 !important;
+    color: #f5f2ea !important;
+    caret-color: #ff8c32 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 1rem !important;
     padding: 0.75rem 1rem !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
 }
-.stTextInput > div > div > input:focus {
+.stTextInput input:focus,
+div[data-testid="stTextInput"] input:focus {
+    background: #121118 !important;
+    color: #f5f2ea !important;
     border-color: #ff8c32 !important;
     box-shadow: 0 0 0 3px rgba(255,140,50,0.12) !important;
+}
+.stTextInput input::placeholder {
+    color: #6b6459 !important;
+    opacity: 1 !important;
+}
+.stTextInput input::selection {
+    background: #ff8c32 !important;
+    color: #0a0a0f !important;
 }
 .stTextInput > label {
     font-family: 'DM Mono', monospace !important;
@@ -306,6 +319,35 @@ with col_pipeline:
     render_pipeline(st.session_state.results if st.session_state.done else {})
 
 
+def call_with_retry(fn, step_key: str, max_retries: int = 3, base_delay: int = 6):
+    """
+    Calls fn() (a function with no arguments). If it fails with a
+    "temporarily overloaded" style error from Google (a 503), this waits a
+    bit and tries again a few times before giving up — since those errors
+    are usually just Google being busy for a moment, not a real problem.
+    """
+    for attempt in range(1, max_retries + 1):
+        try:
+            return fn()
+        except Exception as e:
+            msg = str(e)
+            is_overloaded = "503" in msg or "UNAVAILABLE" in msg or "overloaded" in msg.lower()
+            if attempt == max_retries or not is_overloaded:
+                raise
+            wait_seconds = base_delay * attempt
+            num, title, _ = step_meta[step_key]
+            step_placeholders[step_key].markdown(
+                step_card_html(
+                    num, title,
+                    f"Google's API is busy — retrying in {wait_seconds}s "
+                    f"(attempt {attempt}/{max_retries})…",
+                    "running",
+                ),
+                unsafe_allow_html=True,
+            )
+            time.sleep(wait_seconds)
+
+
 # ── Run the pipeline (updates the cards above live, step by step) ────────────
 if run_btn:
     if not topic.strip():
@@ -316,45 +358,66 @@ if run_btn:
         results = {}
         start_time = time.time()
 
-        # Step 1 — Search
-        render_pipeline(results, active_step="search")
-        search_agent = build_search_agent()
-        sr = search_agent.invoke({
-            "messages": [("user", f"Find recent, reliable and detailed information about: {topic}")]
-        })
-        results["search"] = sr["messages"][-1].content
-        render_pipeline(results)
+        try:
+            # Step 1 — Search
+            render_pipeline(results, active_step="search")
+            search_agent = build_search_agent()
+            sr = call_with_retry(lambda: search_agent.invoke({
+                "messages": [("user", f"Find recent, reliable and detailed information about: {topic}")]
+            }), "search")
+            results["search"] = sr["messages"][-1].content
+            render_pipeline(results)
 
-        # Step 2 — Reader
-        render_pipeline(results, active_step="reader")
-        reader_agent = build_reader_agent()
-        rr = reader_agent.invoke({
-            "messages": [("user",
-                f"Based on the following search results about '{topic}', "
-                f"pick the most relevant URL and scrape it for deeper content.\n\n"
-                f"Search Results:\n{results['search'][:800]}"
-            )]
-        })
-        results["reader"] = rr["messages"][-1].content
-        render_pipeline(results)
+            # Step 2 — Reader
+            render_pipeline(results, active_step="reader")
+            reader_agent = build_reader_agent()
+            rr = call_with_retry(lambda: reader_agent.invoke({
+                "messages": [("user",
+                    f"Based on the following search results about '{topic}', "
+                    f"pick the most relevant URL and scrape it for deeper content.\n\n"
+                    f"Search Results:\n{results['search'][:800]}"
+                )]
+            }), "reader")
+            results["reader"] = rr["messages"][-1].content
+            render_pipeline(results)
 
-        # Step 3 — Writer
-        render_pipeline(results, active_step="writer")
-        research_combined = (
-            f"SEARCH RESULTS:\n{results['search']}\n\n"
-            f"DETAILED SCRAPED CONTENT:\n{results['reader']}"
-        )
-        results["writer"] = writer_chain.invoke({"topic": topic, "research": research_combined})
-        render_pipeline(results)
+            # Step 3 — Writer
+            render_pipeline(results, active_step="writer")
+            research_combined = (
+                f"SEARCH RESULTS:\n{results['search']}\n\n"
+                f"DETAILED SCRAPED CONTENT:\n{results['reader']}"
+            )
+            results["writer"] = call_with_retry(
+                lambda: writer_chain.invoke({"topic": topic, "research": research_combined}),
+                "writer",
+            )
+            render_pipeline(results)
 
-        # Step 4 — Critic
-        render_pipeline(results, active_step="critic")
-        results["critic"] = critic_chain.invoke({"report": results["writer"]})
-        render_pipeline(results)
+            # Step 4 — Critic
+            render_pipeline(results, active_step="critic")
+            results["critic"] = call_with_retry(
+                lambda: critic_chain.invoke({"report": results["writer"]}),
+                "critic",
+            )
+            render_pipeline(results)
 
-        st.session_state.results = results
-        st.session_state.done = True
-        st.session_state.elapsed = time.time() - start_time
+            st.session_state.results = results
+            st.session_state.done = True
+            st.session_state.elapsed = time.time() - start_time
+
+        except Exception as e:
+            # The step card that was mid-run stays highlighted, so you can see
+            # exactly which agent it failed on, instead of the whole app crashing.
+            st.error(
+                "⚠️ The AI service didn't respond. This is almost always temporary — "
+                "either Google's Gemini API is briefly overloaded, or you've hit a "
+                "rate/quota limit, or the API key isn't set correctly on this deployment.\n\n"
+                "**Try this:** wait a few seconds and click 'Run Research Pipeline' again. "
+                "If it keeps failing, check Streamlit Cloud → *Manage app* → *Secrets* "
+                "for your API key, and your Google AI Studio usage page for quota limits."
+            )
+            with st.expander("Technical details (for debugging)"):
+                st.code(f"{type(e).__name__}: {e}")
 
 
 # ── Results ────────────────────────────────────────────────────────────────
